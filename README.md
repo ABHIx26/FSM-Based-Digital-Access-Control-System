@@ -205,12 +205,13 @@ From the `sim` directory:
 ```bash
 chmod +x run_simulation.sh
 ./run_simulation.sh
+```
 
 The simulation script:
 
 1. Compiles the Verilog design and testbench using Icarus Verilog
 2. Runs the simulation
-3. Generates the waveform file
+3. Generates the `access_control.vcd` waveform file
 4. Opens the waveform using GTKWave
 
 ---
