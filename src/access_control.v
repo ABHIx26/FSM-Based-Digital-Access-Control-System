@@ -57,8 +57,10 @@ module access_control(
                 else begin
                     next_state = S0;
 
-                    if (failed_attempts == 2'd2)
+                    if (failed_attempts == 2'd2) begin
+                        next_failed_attempts = 2'd3;
                         next_state = LOCKOUT;
+                    end
                     else
                         next_failed_attempts = failed_attempts + 1'b1;
                 end
@@ -71,8 +73,10 @@ module access_control(
                 else begin
                     next_state = S0;
 
-                    if (failed_attempts == 2'd2)
+                    if (failed_attempts == 2'd2) begin
+                        next_failed_attempts = 2'd3;
                         next_state = LOCKOUT;
+                    end
                     else
                         next_failed_attempts = failed_attempts + 1'b1;
                 end
@@ -87,8 +91,10 @@ module access_control(
                 else begin
                     next_state = S0;
 
-                    if (failed_attempts == 2'd2)
+                    if (failed_attempts == 2'd2) begin
+                        next_failed_attempts = 2'd3;
                         next_state = LOCKOUT;
+                    end
                     else
                         next_failed_attempts = failed_attempts + 1'b1;
                 end
