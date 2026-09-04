@@ -2,7 +2,6 @@
 
 module access_control_tb;
 
-    // Testbench signals
     reg clk;
     reg reset;
     reg [1:0] key;
@@ -12,7 +11,8 @@ module access_control_tb;
     wire [1:0] failed_attempts;
     wire [2:0] current_state;
 
-    // Instantiate the Design Under Test (DUT)
+    integer errors;
+
     access_control dut (
         .clk(clk),
         .reset(reset),
@@ -27,87 +27,133 @@ module access_control_tb;
     initial clk = 0;
     always #5 clk = ~clk;
 
+    // Apply a key for one clock cycle
+    task press_key;
+        input [1:0] key_value;
+        begin
+            key = key_value;
+            #10;
+            key = 2'b11;
+            #1;
+        end
+    endtask
+
     initial begin
 
-        // Generate waveform file
         $dumpfile("access_control.vcd");
         $dumpvars(0, access_control_tb);
 
+        errors = 0;
+        key = 2'b11;
+
         $display("========================================");
-        $display("Starting Access Control System Test");
+        $display("ACCESS CONTROL SYSTEM VERIFICATION");
         $display("========================================");
 
-        // -----------------------------------
         // TEST 1: Reset
-        // -----------------------------------
         reset = 1;
-        key = 2'b00;
         #10;
-
         reset = 0;
         #10;
 
-        // -----------------------------------
+        if (current_state == 3'd0 && failed_attempts == 2'd0 &&
+            unlock == 1'b0 && lockout == 1'b0)
+            $display("TEST 1: PASS - System reset successfully");
+        else begin
+            $display("TEST 1: FAIL - Reset operation incorrect");
+            errors = errors + 1;
+        end
+
         // TEST 2: Correct sequence A-B-C-A
-        // -----------------------------------
-        $display("TEST 2: Correct sequence");
+        press_key(2'b00);
+        press_key(2'b01);
+        press_key(2'b10);
+        press_key(2'b00);
 
-        key = 2'b00; #10;  // A
-        key = 2'b01; #10;  // B
-        key = 2'b10; #10;  // C
-        key = 2'b00; #10;  // A
+        #1;
 
-        // -----------------------------------
+        if (unlock == 1'b1 && failed_attempts == 2'd0)
+            $display("TEST 2: PASS - Correct sequence unlocked system");
+        else begin
+            $display("TEST 2: FAIL - Correct sequence did not unlock");
+            errors = errors + 1;
+        end
+
+        #9;
+
         // TEST 3: Incorrect attempt 1
-        // -----------------------------------
-        $display("TEST 3: Incorrect attempt 1");
+        press_key(2'b00);
+        press_key(2'b10);
 
-        key = 2'b00; #10;  // A
-        key = 2'b10; #10;  // Wrong key
+        if (failed_attempts == 2'd1 && lockout == 1'b0)
+            $display("TEST 3: PASS - Failed attempt count = 1");
+        else begin
+            $display("TEST 3: FAIL - Incorrect first attempt handling");
+            errors = errors + 1;
+        end
 
-        // -----------------------------------
         // TEST 4: Incorrect attempt 2
-        // -----------------------------------
-        $display("TEST 4: Incorrect attempt 2");
+        press_key(2'b00);
+        press_key(2'b10);
 
-        key = 2'b00; #10;  // A
-        key = 2'b10; #10;  // Wrong key
+        if (failed_attempts == 2'd2 && lockout == 1'b0)
+            $display("TEST 4: PASS - Failed attempt count = 2");
+        else begin
+            $display("TEST 4: FAIL - Incorrect second attempt handling");
+            errors = errors + 1;
+        end
 
-        // -----------------------------------
         // TEST 5: Incorrect attempt 3
-        // -----------------------------------
-        $display("TEST 5: Incorrect attempt 3 - Lockout expected");
+        press_key(2'b00);
+        press_key(2'b10);
 
-        key = 2'b00; #10;  // A
-        key = 2'b10; #10;  // Wrong key
+        if (failed_attempts == 2'd3 && lockout == 1'b1 &&
+            current_state == 3'd5)
+            $display("TEST 5: PASS - System entered LOCKOUT after 3 failed attempts");
+        else begin
+            $display("TEST 5: FAIL - Lockout operation incorrect");
+            errors = errors + 1;
+        end
 
-        #10;
-
-        // -----------------------------------
         // TEST 6: Reset after lockout
-        // -----------------------------------
-        $display("TEST 6: Resetting system");
-
         reset = 1;
         #10;
-
         reset = 0;
+        key = 2'b11;
         #10;
 
-        // -----------------------------------
+        if (current_state == 3'd0 && failed_attempts == 2'd0 &&
+            lockout == 1'b0)
+            $display("TEST 6: PASS - System recovered after reset");
+        else begin
+            $display("TEST 6: FAIL - Reset recovery incorrect");
+            errors = errors + 1;
+        end
+
         // TEST 7: Correct sequence after reset
-        // -----------------------------------
-        $display("TEST 7: Correct sequence after reset");
+        press_key(2'b00);
+        press_key(2'b01);
+        press_key(2'b10);
+        press_key(2'b00);
 
-        key = 2'b00; #10;
-        key = 2'b01; #10;
-        key = 2'b10; #10;
-        key = 2'b00; #10;
+        #1;
 
-        #20;
+        if (unlock == 1'b1 && failed_attempts == 2'd0)
+            $display("TEST 7: PASS - Correct sequence works after reset");
+        else begin
+            $display("TEST 7: FAIL - Correct sequence failed after reset");
+            errors = errors + 1;
+        end
+
+        #9;
 
         $display("========================================");
-        $display("Simulation completed");
+
+        if (errors == 0)
+            $display("ALL TESTS PASSED");
+        else
+            $display("SIMULATION FAILED - %0d TEST(S) FAILED", errors);
+
         $display("========================================");
 
         $finish;
