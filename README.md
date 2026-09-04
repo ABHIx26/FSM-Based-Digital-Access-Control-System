@@ -141,6 +141,10 @@ FSM-Based-Digital-Access-Control-System/
 ├── sim/
 │   └── run_simulation.sh
 │
+├── images/
+│   ├── waveform.png
+│   └── simulation_results.png
+│
 └── README.md
 ```
 
