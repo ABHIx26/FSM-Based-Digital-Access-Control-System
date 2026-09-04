@@ -162,7 +162,7 @@ FSM-Based-Digital-Access-Control-System/
 
 ## Verification
 
-A Verilog testbench was developed to verify the following functionality:
+A self-checking Verilog testbench was developed to verify the following functionality:
 
 - System reset operation
 - Correct access sequence detection
@@ -171,6 +171,8 @@ A Verilog testbench was developed to verify the following functionality:
 - Automatic lockout after three failed attempts
 - Reset recovery from the lockout state
 - Successful access after reset
+
+The testbench performs seven functional checks and reports PASS/FAIL status automatically.
 
 ---
 
@@ -182,7 +184,17 @@ The design was simulated using:
 - **EPWave / GTKWave**
 - **EDA Playground**
 
-The simulation waveform verifies the FSM state transitions, failed-attempt counter, lockout functionality, reset operation, and successful access detection.
+### Verification Results
+
+The self-checking testbench successfully passed all seven functional tests.
+
+![Simulation Results](images/simulation_results.png)
+
+### Simulation Waveform
+
+The waveform verifies FSM state transitions, key inputs, failed-attempt counting, reset operation, successful access detection, and automatic lockout.
+
+![Simulation Waveform](images/waveform.png)
 
 ---
 
@@ -193,7 +205,6 @@ From the `sim` directory:
 ```bash
 chmod +x run_simulation.sh
 ./run_simulation.sh
-```
 
 The simulation script:
 
